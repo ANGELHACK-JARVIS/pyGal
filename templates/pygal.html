@@ -4,6 +4,11 @@
 	<title>First Try</title>
 </head>
 <body>
-{{ graph.render()|safe}}
+<div style="margin-left:350px; margin-bottom:100px; margin-top:100px;">
+{{ graphs[0].render()|safe}}
+</div>
+<div style="margin-left:350px;">
+{{ graphs[1].render()|safe}}
+</div>
 </body>
 </html>
