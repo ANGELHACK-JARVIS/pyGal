@@ -4,7 +4,8 @@ from flask.ext.mysql import MySQL
 from werkzeug import generate_password_hash, check_password_hash
 from flask_googlemaps import GoogleMaps
 from flask_googlemaps import Map
-
+import pygal
+from pygal.style import BlueStyle, NeonStyle,DarkSolarizedStyle, LightSolarizedStyle, LightColorizedStyle, DarkColorizedStyle, TurquoiseStyle
 app = Flask(__name__)
 GoogleMaps(app)
 app.secret_key = 'ssh...Big secret!'
@@ -113,6 +114,25 @@ def userHome():
 def logout():
     session.pop('user',None)
     return redirect('/')
+
+#pyGal implementation.
+@app.route('/pygal')
+def makeGraph():
+    title="Random Graph"
+    some_graph=pygal.Bar(width=1200, height=600, explicit_size=True, title=title, style=BlueStyle, disable_xml_declaration=True)
+    #values=[1,2,3,4,5,6,7,8,9,10]
+    labels=['Theft','Violence', 'Harassment']
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('security')
+    data=cursor.fetchone()
+    values=[data[0],data[1],data[2]]
+    cursor.close()
+    conn.close()
+    some_graph.x_labels=labels
+    some_graph.add('Value', values)
+    return render_template('pygal.html', graph=some_graph)
+
 
 if __name__ == "__main__":
     app.debug = True
