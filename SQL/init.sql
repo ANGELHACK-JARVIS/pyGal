@@ -109,15 +109,17 @@ CREATE TABLE Security(
 
 --Fetch reviews from table
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `security`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `security`(In place_name VARCHAR(255))
 BEGIN
-    select avg(Theft), avg(Violence), avg(Harassment) from Security;
+    select avg(Theft), avg(Violence), avg(Harassment) from Security, Coordinates where Coordinates.Loc_id=Security.Loc_id and Coordinates.Loc_name=place_name;
 END$$
 DELIMITER;
+;
+
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `lifestyle`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `lifestyle`(In place_name VARCHAR(255))
 BEGIN
-SELECT avg(Water), avg(Electricity), avg(Network_Availability), avg(Cleanliness), avg(Green_space), avg(Local_Entertainment), avg(NightLife), avg(Repairmen_avail), avg(Education), avg(Neighbourhood) from LifeStyle;
+SELECT avg(Water), avg(Electricity), avg(Network_Availability), avg(Cleanliness), avg(Green_space), avg(Local_Entertainment), avg(NightLife), avg(Repairmen_avail), avg(Education), avg(Neighbourhood) from LifeStyle, Coordinates where Coordinates.Loc_id=LifeStyle.Loc_id and Coordinates.Loc_name=place_name;
 END$$
 DELIMITER;

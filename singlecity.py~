@@ -1,0 +1,57 @@
+from flask import Flask, render_template, json, request, redirect, session
+from flask.ext.mysql import MySQL
+from werkzeug import generate_password_hash, check_password_hash
+from flask_googlemaps import GoogleMaps
+from flask_googlemaps import Map
+import pygal
+from pygal.style import BlueStyle, NeonStyle,DarkSolarizedStyle, LightSolarizedStyle, LightColorizedStyle, DarkColorizedStyle, TurquoiseStyle
+app = Flask(__name__)
+GoogleMaps(app)
+app.secret_key = 'ssh...Big secret!'
+#MySQL configurations
+
+mysql = MySQL()
+
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'utkarsh@mit'
+app.config['MYSQL_DATABASE_DB'] = 'safelocality'
+app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+mysql.init_app(app)
+
+
+#pyGal implementation.
+@app.route('/pygal')
+def makeGraph():
+    title="Crime Rates"
+    crime_graph=pygal.Bar(width=600, height=600, explicit_size=True, title=title, style=BlueStyle, disable_xml_declaration=True, range=(0,10))
+    crime_labels=['Theft','Violence', 'Harassment']
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('security')
+    data=cursor.fetchone()
+    crime_values=[data[0],data[1],data[2]]
+    crime_graph.x_labels=crime_labels
+    crime_graph.add('Rating', crime_values)
+    lifestyle_graph=pygal.Bar(width=1200, height=600, explicit_size=True, title="Living Standards", style=BlueStyle, disable_xml_declaration=True, range=(0,10))
+    cursor.close()
+    conn.close()
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('lifestyle')
+    data=cursor.fetchone()
+    lifestyle_values=[data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]]
+    lifestyle_labels=["Water", "Electricity", "Network Availability", "Cleanliness", "Green Space", "Local Entertainment", "Night Life", "Services", "Education", "Neighbourhood"]
+    lifestyle_graph.x_labels=lifestyle_labels
+    lifestyle_graph.add('Rating', lifestyle_values)
+    graphs=[crime_graph, lifestyle_graph]
+    cursor.close()
+    conn.close()
+    line_chart = pygal.Bar()
+    line_chart.title = 'Browser usage evolution (in %)'
+    line_chart.x_labels = map(str, range(2002, 2013))
+    line_chart.add('Firefox', [10, 10, 0, 16.6,   25,   31, 36.4, 45.5, 46.3, 42.8, 37.1])
+    line_chart.add('Chrome',  [10, 10, 1, 5, 4, 7,    0,  3.9, 10.8, 23.8, 35.3])
+    line_chart.add('IE',      [85.8, 84.6, 84.7, 74.5,   66, 58.6, 54.7, 44.8, 36.2, 26.6, 20.1])
+    line_chart.add('Others',  [14.2, 15.4, 15.3,  8.9,    9, 10.4,  8.9,  5.8,  6.7,  6.8,  7.5])
+    chart = line_chart.render(is_unicode=True)
+    return render_template('pygal.html', graphs=graphs, chart=chart)

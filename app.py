@@ -115,35 +115,6 @@ def logout():
     session.pop('user',None)
     return redirect('/')
 
-#pyGal implementation.
-@app.route('/pygal')
-def makeGraph():
-    title="Crime Rates"
-    crime_graph=pygal.Bar(width=600, height=600, explicit_size=True, title=title, style=BlueStyle, disable_xml_declaration=True, range=(0,10))
-    crime_labels=['Theft','Violence', 'Harassment']
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('security')
-    data=cursor.fetchone()
-    crime_values=[data[0],data[1],data[2]]
-    crime_graph.x_labels=crime_labels
-    crime_graph.add('Rating', crime_values)
-    lifestyle_graph=pygal.Bar(width=600, height=600, explicit_size=True, title="Living Standards", style=BlueStyle, disable_xml_declaration=True, range=(0,10))
-    cursor.close()
-    conn.close()
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('lifestyle')
-    data=cursor.fetchone()
-    lifestyle_values=[data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]]
-    lifestyle_labels=["Water", "Electricity", "Network_Availability", "Cleanliness", "Green_space", "Local_Entertainment", "NightLife", "Repairmen_avail", "Education", "Neighbourhood"]
-    lifestyle_graph.x_values=lifestyle_labels
-    lifestyle_graph.add('Rating', lifestyle_values)
-    graphs=[crime_graph, lifestyle_graph]
-    cursor.close()
-    conn.close()
-    graphs=[crime_graph, lifestyle_graph]
-    return render_template('pygal.html', graphs=graphs)
 if __name__ == "__main__":
     app.debug = True
     app.run()
