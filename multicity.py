@@ -25,15 +25,22 @@ def mulCity():
     crime_graph.x_labels=['Theft','Violence', 'Harassment']
     conn = mysql.connect()
     cursor = conn.cursor()
+    lifestyle_graph=pygal.Bar(width=1200, height=600, explicit_size=True, title="Living Standards", style=BlueStyle, disable_xml_declaration=True, range=(0,10))
+    lifestyle_graph.x_labels=["Water", "Electricity", "Network Availability", "Cleanliness", "Green Space", "Local Entertainment", "Night Life", "Services", "Education", "Neighbourhood"]
     cursor.execute("Select * from Coordinates")
     places=cursor.fetchall()
     print places
     for place in places:
-        cursor.execute("Select avg(Theft), avg(Violence), avg(Harassment) from Security, Coordinates where Security.Loc_id=Coordinates.Loc_id and Coordinates.Loc_name=%s",(place[1]))
-        details=cursor.fetchall()[0]
-        crime_graph.add(place[1],[details[0],details[1], details[2]])
+        cursor.execute("SELECT avg(Theft), avg(Violence), avg(Harassment) from Security, Coordinates where Security.Loc_id=%s", (place[0]))
+        crime_details=cursor.fetchall()[0]
+        crime_graph.add(place[1], [crime_details[0], crime_details[1], crime_details[2]])
+        cursor.execute("SELECT avg(Water), avg(Electricity), avg(Network_Availability), avg(Cleanliness), avg(Green_space), avg(Local_Entertainment), avg(NightLife), avg(Repairmen_avail), avg(Education), avg(Neighbourhood) from LifeStyle where Loc_id=%s", (place[0]))
+        lifestyle_details=cursor.fetchall()[0]
+        lifestyle_graph.add(place[1],[lifestyle_details[0], lifestyle_details[1], lifestyle_details[2], lifestyle_details[3], lifestyle_details[4], lifestyle_details[5], lifestyle_details[6], lifestyle_details[7], lifestyle_details[8], lifestyle_details[9] ])
+
     chart = crime_graph.render(is_unicode=True)
-    return render_template('pygal.html', chart=chart)
+    life=lifestyle_graph.render(is_unicode=True)
+    return render_template('pygal.html', chart=chart, life=life)
 
 
 
